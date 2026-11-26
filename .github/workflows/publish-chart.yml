@@ -42,11 +42,17 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "Chart version: $version"
 
+      # Pass the credentials through env, never inline: the robot account name
+      # contains a `$` (robot$githubactions), which bash would expand inside the
+      # script and `set -u` then aborts on.
       - name: Log in to the registry
+        env:
+          REGISTRY_USER: ${{ secrets.DOCKER_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           set -euo pipefail
-          printf '%s' "${{ secrets.DOCKER_PASSWORD }}" \
-            | helm registry login "${REGISTRY}" -u "${{ secrets.DOCKER_USER }}" --password-stdin
+          printf '%s' "${REGISTRY_PASSWORD}" \
+            | helm registry login "${REGISTRY}" -u "${REGISTRY_USER}" --password-stdin
 
       # Publishing over an existing version is what makes this silently useless:
       # the push appears to succeed while ArgoCD keeps serving the old content.
