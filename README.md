@@ -1,5 +1,27 @@
 # Pendle generic balance fetcher
 
+## DAWN HTTP service
+
+This fork runs the fetcher as an HTTP service for infrafi-api.
+
+Environment:
+
+| Var | Example |
+|---|---|
+| `CHAIN_ID` | `8453` (Base, default) |
+| `BASE_RPC` | Base RPC URL |
+| `PENDLE_SY` | SY address |
+| `PENDLE_YT` | YT address |
+| `PENDLE_MARKETS` | `0xmarket:deployedBlock[,0xmarket2:block2]` |
+| `PORT` | `8080` (default) |
+
+Endpoints:
+
+- `GET /health` → `{ "ok": true }`
+- `GET /balances?block=N` → `{ "block": N, "yt": { "0x…": "123…" }, "lp": { … } }`. Balances are in SY base units, as decimal strings; zero balances are omitted. The YT fee share and expired-YT reserve are credited to the Pendle treasury, as upstream.
+
+Run locally with `yarn start`, or `docker build -t pendle-balance-fetcher .`.
+
 
 ## Set up
 
