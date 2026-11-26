@@ -18,7 +18,7 @@ Environment:
 Endpoints:
 
 - `GET /health` → `{ "ok": true }`
-- `GET /balances?block=N` → `{ "block": N, "yt": { "0x…": "123…" }, "lp": { … } }`. Balances are in SY base units, as decimal strings; zero balances are omitted. The YT fee share and expired-YT reserve are credited to the Pendle treasury, as upstream.
+- `GET /balances[?block=N]` → `{ "block": N, "sy": "0x…", "decimals": 18, "yt": { "0x…": "123…" }, "lp": { … } }`. Without `block`, reads ~15 min (450 blocks) behind the head. Balances are in SY base units (`decimals` places), as decimal strings; zero balances are omitted. The YT fee share and expired-YT reserve are credited to the Pendle treasury, as upstream.
 
 Run locally with `yarn start`, or `docker build -t pendle-balance-fetcher .`.
 

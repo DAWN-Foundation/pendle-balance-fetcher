@@ -1,6 +1,7 @@
 import http from 'http';
 import { CHAIN, POOL_INFO } from './configuration';
-import { _1E18 } from './consts';
+import { ethers } from 'ethers';
+import { _1E18, PROVIDER } from './consts';
 import { resolveMorpho } from './lib/morpho';
 import {
   applyLpHolderShares,
@@ -97,6 +98,18 @@ function send(res: http.ServerResponse, status: number, body: unknown) {
   res.end(JSON.stringify(body));
 }
 
+// ~15 minutes of Base blocks (2s each).
+const BLOCK_DELAY = 450;
+
+async function syDecimals(): Promise<number> {
+  const sy = new ethers.Contract(
+    POOL_INFO.SY,
+    ['function decimals() view returns (uint8)'],
+    PROVIDER
+  );
+  return Number(await sy.decimals());
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', 'http://localhost');
 
@@ -105,14 +118,29 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && url.pathname === '/balances') {
-    const block = Number(url.searchParams.get('block'));
+    const param = url.searchParams.get('block');
+    let block: number;
+    try {
+      // No block = ~15 min behind head, Pendle's recommended buffer.
+      block = param
+        ? Number(param)
+        : (await PROVIDER.getBlockNumber()) - BLOCK_DELAY;
+    } catch (e) {
+      console.error('head block read failed', e);
+      return send(res, 500, { error: String(e) });
+    }
     if (!Number.isInteger(block) || block <= 0) {
       return send(res, 400, { error: 'block must be a positive integer' });
     }
     try {
-      const [snapshot] = await fetchUserBalanceSnapshotBatch([block]);
+      const [snapshot, decimals] = await Promise.all([
+        fetchUserBalanceSnapshotBatch([block]).then((r) => r[0]),
+        syDecimals()
+      ]);
       return send(res, 200, {
         block,
+        sy: POOL_INFO.SY,
+        decimals,
         yt: toJson(snapshot.resultYT),
         lp: toJson(snapshot.resultLP)
       });
