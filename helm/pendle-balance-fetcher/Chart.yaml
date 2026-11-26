@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pendle-balance-fetcher
+description: HTTP service returning Pendle YT/LP holder balances per block, for infrafi-api points
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

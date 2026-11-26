@@ -1,0 +1,7 @@
+.git
+.github
+helm
+node_modules
+.env
+.env.*
+*.md
