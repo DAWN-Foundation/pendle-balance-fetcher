@@ -1,14 +1,28 @@
+import 'dotenv/config';
 import { CHAINS, PoolConfiguration } from './types';
 
-export const CHAIN = CHAINS.ETHEREUM;
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is not set`);
+  return value.toLowerCase();
+}
+
+// PENDLE_MARKETS: comma-separated `address:deployedBlock` pairs.
+function parseMarkets(raw: string): PoolConfiguration['LPs'] {
+  return raw.split(',').map((entry) => {
+    const [address, block] = entry.trim().split(':');
+    const deployedBlock = Number(block);
+    if (!address || !Number.isInteger(deployedBlock)) {
+      throw new Error(`invalid PENDLE_MARKETS entry: ${entry}`);
+    }
+    return { address, deployedBlock };
+  });
+}
+
+export const CHAIN: CHAINS = Number(process.env.CHAIN_ID || CHAINS.BASE);
 
 export const POOL_INFO: PoolConfiguration = {
-  SY: '0x7ac8ca87959b1d5edfe2df5325a37c304dcea4d0',
-  YT: '0xe8ef806c8aadc541408dcad36107c7d26a391712',
-  LPs: [
-    {
-      address: '0xe93b4a93e80bd3065b290394264af5d82422ee70',
-      deployedBlock: 22472324
-    }
-  ]
+  SY: required('PENDLE_SY'),
+  YT: required('PENDLE_YT'),
+  LPs: parseMarkets(required('PENDLE_MARKETS'))
 };
