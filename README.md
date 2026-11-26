@@ -22,6 +22,18 @@ Endpoints:
 
 Run locally with `yarn start`, or `docker build -t pendle-balance-fetcher .`.
 
+### Deploy
+
+- `helm/pendle-balance-fetcher`: the chart. `publish-chart.yml` pushes it to
+  `oci://registry.dawninternet.net/dawn-foundation-helm` when `helm/**` changes on
+  `main`; bump `version` in `Chart.yaml` for every chart change.
+- `development.yml`: on push to `main`, builds
+  `registry.dawninternet.net/dawn-foundation/dev_pendle_balance_fetcher:<run>` and sets
+  `.image.tag` in cd-dawn `apps/services/pendle-balance-fetcher-dev/values.yaml`.
+- Plain env (`CHAIN_ID`, `PENDLE_*`) lives in that cd-dawn `values.yaml`; `BASE_RPC` comes
+  from Vault (`services/pendle-balance-fetcher-dev/pendle-balance-fetcher-secrets`).
+- In-cluster only: `http://pendle-balance-fetcher.pendle-balance-fetcher-dev.svc.cluster.local:8080`.
+
 
 ## Set up
 
